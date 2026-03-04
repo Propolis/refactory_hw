@@ -25,4 +25,4 @@ def get_user(service: UserService = Depends()) -> JSONResponse:
 def create_user(response: Response, user: CreateUser, service: UserService = Depends()):
     add_result = service.add_user(user)
     response.status_code = status.HTTP_201_CREATED
-    return {"message": "User created", "user": add_result.dict()}
+    return {"message": "User created", "user": add_result}
