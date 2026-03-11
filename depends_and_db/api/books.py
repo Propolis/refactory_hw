@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Response, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
-from schemas import BookSchema, UpdateBookSchema
+from dependency import PaginationDep
+from schemas import BookSchema, UpdateBookSchema, CreateBookSchema
 from services import BookService
-from typing import List
 
 
 router = APIRouter(prefix= "/books", tags=["books"])
@@ -11,7 +12,7 @@ router = APIRouter(prefix= "/books", tags=["books"])
 
 @router.post("/")
 def add_book(
-        payload: BookSchema,
+        payload: CreateBookSchema,
         service: BookService = Depends()
 ) -> JSONResponse:
     add_result = service.add_book(payload)
@@ -29,18 +30,17 @@ def get_book(
 ) -> JSONResponse:
     get_result = service.get_book_by_id(book_id)
     if get_result:
-        return JSONResponse(get_result.model_dump(), status.HTTP_200_OK)
+        return JSONResponse(jsonable_encoder(get_result), status.HTTP_200_OK)
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
 
 @router.get("/")
 def get_books_collection(
-        limit: int = 5,
-        offset: int = 0,
+        pagination: PaginationDep,
         service: BookService = Depends()
 ) -> list[BookSchema]:
-    get_result = service.get_books(limit, offset)
+    get_result = service.get_books(pagination.limit, pagination.offset)
     return get_result
 
 
@@ -52,7 +52,7 @@ def update_book(
 ):
     update_result = service.update_book(book_id, payload)
     if update_result:
-        return JSONResponse(update_result.model_dump(), status.HTTP_200_OK)
+        return JSONResponse(jsonable_encoder(update_result), status.HTTP_200_OK)
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
