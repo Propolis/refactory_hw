@@ -35,4 +35,4 @@ class S3StorageAdapter(StorageAdapter):
         except (ClientError, BotoCoreError) as e:
             raise HTTPException(status_code=502, detail=str(e))
 
-        return f"{self.url}/{self.bucket}/{key}"
+        return f"http://localhost:9000/{self.bucket}/{key}"
