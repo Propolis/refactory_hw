@@ -1,11 +1,9 @@
+import aioboto3
 from botocore.exceptions import ClientError, BotoCoreError
 from fastapi import HTTPException
 
-from adapters.storage.base import StorageAdapter
-import boto3
 
-
-class S3StorageAdapter(StorageAdapter):
+class S3StorageAdapter:
     def __init__(
         self,
         bucket: str,
@@ -16,22 +14,26 @@ class S3StorageAdapter(StorageAdapter):
     ):
         self.bucket = bucket
         self.url = url
-        self.client = boto3.client(
-            "s3",
-            endpoint_url=url,
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            region_name=region
-        )
+        self.access_key = access_key
+        self.secret_key = secret_key
+        self.region = region
+        self.session = aioboto3.Session()
 
-    def upload(self, content: bytes, key: str, content_type: str) -> str:
+    async def upload(self, content: bytes, key: str, content_type: str) -> str:
         try:
-            self.client.put_object(
-                Bucket=self.bucket,
-                Key=key,
-                Body=content,
-                ContentType=content_type
-            )
+            async with self.session.client(
+                "s3",
+                endpoint_url=self.url,
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+                region_name=self.region,
+            ) as client:
+                await client.put_object(
+                    Bucket=self.bucket,
+                    Key=key,
+                    Body=content,
+                    ContentType=content_type,
+                )
         except (ClientError, BotoCoreError) as e:
             raise HTTPException(status_code=502, detail=str(e))
 

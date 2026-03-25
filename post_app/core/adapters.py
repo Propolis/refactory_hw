@@ -1,10 +1,8 @@
-from adapters.storage.base import StorageAdapter
 from adapters.storage.s3 import S3StorageAdapter
-
 from core.config import settings
 
 
-def get_storage() -> StorageAdapter:
+def get_storage() -> S3StorageAdapter:
     return S3StorageAdapter(
         bucket=settings.s3_bucket,
         url=settings.s3_url,
